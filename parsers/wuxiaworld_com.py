@@ -22,14 +22,19 @@ class Parser:
 
     def __init__(self, url):
         self._browser = uc.Chrome()
+        #self._browser.implicitly_wait(10)
         self._browser.get(url)
 
         # Get app
         app = self._browser.find_element(By.ID, 'app')
+        time.sleep(1)
 
         self._title = self._parse_title(app)
+        time.sleep(1)
         self._author = self._parse_author(None)
+        time.sleep(1)
         self._cover_url = self._parse_cover_url(app)
+        time.sleep(1)
         self._chapterlist = self._parse_chapter_list(app)
 
     def __del__(self):
@@ -51,14 +56,15 @@ class Parser:
     @staticmethod
     def login(browser, username, password):
         browser.get('https://wuxiaworld.com')
-        account_btn = browser.find_element(By.XPATH, '//*[@id="header"]/div/div/div[3]/button')
+        #account_btn = browser.find_element(By.XPATH, '//*[@id="header"]/div/div/div[3]/button')
+        account_btn = browser.find_element(By.XPATH, '//*[@id="header"]/div/div/div[2]/button[1]')
         account_btn.click()
         # Dumb Chrome workaround
-        popup = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[3]')))
+        popup = Parser._wait_for(browser, (By.XPATH, '/html/body/div[2]/div[2]'))
         for button in browser.find_elements(By.TAG_NAME, 'button'):
             if 'LOG IN' in button.text:
                 button.click()
-        login_form = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div/div/div[1]/div[2]/form')))
+        login_form = Parser._wait_for(browser, (By.XPATH, '/html/body/div[2]/div/div/div/div[1]/div[2]/form'))
         time.sleep(1)
         username_field = login_form.find_element(By.ID, 'Username')
         username_field.send_keys(username)
@@ -71,7 +77,7 @@ class Parser:
     @staticmethod
     def load(browser, url):
         browser.get(url)
-        app = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.ID, 'app')))
+        app = Parser._wait_for(browser, (By.ID, 'app'))
         chapters = None
         for i in range(10):
             html = app.get_attribute('innerHTML').encode('utf-8')
@@ -123,25 +129,32 @@ class Parser:
     # PRIVATE
     ##########################################################################
 
+    @staticmethod
+    def _wait_for(app, tup):
+        return WebDriverWait(app, 10).until(EC.presence_of_element_located(tup))
+
     def _parse_title(self, app):
-        header = app.find_element(By.TAG_NAME, 'h1')
+        header = Parser._wait_for(app, (By.TAG_NAME, 'h1'))
         return header.text.encode('utf-8')
 
     def _parse_author(self, app):
         return 'wuxiaworld.com'.encode('utf-8')
 
     def _parse_cover_url(self, app):
-        image = app.find_element(By.TAG_NAME, 'img')
+        #image = Parser._wait_for(app, (By.TAG_NAME, 'img'))
+        image = Parser._wait_for(app, (By.XPATH, '//*[@id="loading-container-replacement"]/div/div[1]/div/div/div[1]/div/div/div/div[1]/img'))
         full_url = image.get_attribute('src')
         return full_url[full_url.index('https://cdn.wuxiaworld.com'):]
 
     def _parse_chapter_list(self, app):
         chapterlist = list()
-        chapter_tab = app.find_element(By.ID, 'full-width-tab-1')
+        chapter_tab = Parser._wait_for(app, (By.ID, 'full-width-tab-1'))
+        time.sleep(1)
         chapter_tab.click()
-        chapter_list = WebDriverWait(app, 10).until(EC.presence_of_element_located((By.ID, 'full-width-tabpanel-1')))
-        sections = chapter_list.find_elements(By.XPATH, '//*[@id="full-width-tabpanel-1"]/div/div/div[2]/div')
-        sections[0].find_element(By.TAG_NAME, 'div').click()
+        time.sleep(1)
+        chapter_list = Parser._wait_for(app, (By.ID, 'full-width-tabpanel-1'))
+        #sections = chapter_list.find_elements(By.XPATH, '//*[@id="full-width-tabpanel-1"]/div/div/div[2]/div')
+        sections = chapter_list.find_elements(By.XPATH, '//*[@id="full-width-tabpanel-1"]/div/div[3]/div')
         for s in sections:
             tab = s.find_element(By.TAG_NAME, 'div')
             tab.click()

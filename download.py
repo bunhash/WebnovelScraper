@@ -9,7 +9,9 @@ PARSERS = {
     'www.wuxiaworld.com' : 'wuxiaworld_com',
     'wuxiaworld.com' : 'wuxiaworld_com',
     'www.ranobes.net' : 'ranobes_net',
-    'ranobes.net' : 'ranobes_net'
+    'ranobes.net' : 'ranobes_net',
+    'www.royalroad.com' : 'royalroad_com',
+    'royalroad.com' : 'royalroad_com'
 }
 LOADED = {}
 
