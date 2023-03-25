@@ -10,7 +10,13 @@ PARSERS = {
     'www.ranobes.net' : 'ranobes_net',
     'ranobes.net' : 'ranobes_net',
     'www.royalroad.com' : 'royalroad_com',
-    'royalroad.com' : 'royalroad_com'
+    'royalroad.com' : 'royalroad_com',
+    'www.vipnovel.com' : 'vipnovel_com',
+    'vipnovel.com' : 'vipnovel_com',
+    'www.novelnb.net' : 'novelnb_net',
+    'novelnb.net' : 'novelnb_net',
+    'www.read-novelfull.com' : 'read_novelfull_com',
+    'read-novelfull.com' : 'read_novelfull_com'
 }
 
 def build_parser(parser_name, url):

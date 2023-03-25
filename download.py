@@ -11,7 +11,13 @@ PARSERS = {
     'www.ranobes.net' : 'ranobes_net',
     'ranobes.net' : 'ranobes_net',
     'www.royalroad.com' : 'royalroad_com',
-    'royalroad.com' : 'royalroad_com'
+    'royalroad.com' : 'royalroad_com',
+    'www.vipnovel.com' : 'vipnovel_com',
+    'vipnovel.com' : 'vipnovel_com',
+    'www.novelnb.net' : 'novelnb_net',
+    'novelnb.net' : 'novelnb_net',
+    'www.read-novelfull.com' : 'read_novelfull_com',
+    'read-novelfull.com' : 'read_novelfull_com'
 }
 LOADED = {}
 
@@ -38,7 +44,7 @@ class Selenium:
         self._browser.quit()
 
     def download(self, url):
-        filename = url.rsplit("/", 1)[1]
+        filename = url.rstrip('/').rsplit("/", 1)[1]
         if not filename:
             raise Exception('no filename found')
         staging_file = os.path.join('staging', filename)
@@ -61,7 +67,7 @@ class PowerShell:
 
     @staticmethod
     def _download(url):
-        filename = url.rsplit("/", 1)[1]
+        filename = url.rstrip('/').rsplit("/", 1)[1]
         if not filename:
             raise Exception('no filename found')
         staging_file = os.path.join('staging', filename)
@@ -92,7 +98,7 @@ class Native:
 
     @staticmethod
     def _download(url):
-        filename = url.rsplit("/", 1)[1]
+        filename = url.rstrip('/').rsplit("/", 1)[1]
         if not filename:
             raise Exception('no filename found')
         staging_file = os.path.join('staging', filename)

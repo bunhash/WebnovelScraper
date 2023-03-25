@@ -154,7 +154,7 @@ class Parser:
         time.sleep(1)
         chapter_list = Parser._wait_for(app, (By.ID, 'full-width-tabpanel-1'))
         #sections = chapter_list.find_elements(By.XPATH, '//*[@id="full-width-tabpanel-1"]/div/div/div[2]/div')
-        sections = chapter_list.find_elements(By.XPATH, '//*[@id="full-width-tabpanel-1"]/div/div[3]/div')
+        sections = chapter_list.find_elements(By.XPATH, '//*[@id="full-width-tabpanel-1"]/div/div[2]/div')
         for s in sections:
             tab = s.find_element(By.TAG_NAME, 'div')
             tab.click()
