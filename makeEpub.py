@@ -1,10 +1,4 @@
 #!/usr/bin/python3
-#
-# Epub Maker
-#
-# @author Brian Hession
-# @email hessionb@gmail.com
-#
 
 from ebooklib import epub
 import os, sys, uuid
