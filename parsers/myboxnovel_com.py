@@ -2,8 +2,8 @@
 #
 # Parses myboxnovel.com
 #
-# @author Brian Hession
-# @email hessionb@gmail.com
+# @author bunhash
+# @email bunhash@bhmail.me
 #
 
 import re, requests, socket
