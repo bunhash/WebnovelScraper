@@ -41,8 +41,8 @@ class Parser:
     def author(self):
         return self._author
 
-    def cover(self):
-        return self._cover_url
+    def download_cover(self, filename):
+        raise Exception("Failed")
 
     def chapters(self):
         return self._chapterlist
@@ -125,7 +125,6 @@ class Parser:
         div = Parser._wait_for(app, (By.XPATH, '//*[@id="tab-chapters"]'))
         html = div.get_attribute('innerHTML').encode('utf-8')
         soup = BeautifulSoup(html, 'lxml')
-        print(soup.prettify())
         for a in soup.find_all('a'):
             chapterlist.append(a['href'])
         if len(chapterlist) > 0:

@@ -33,7 +33,7 @@ class Parser:
         self._chapterlist = self._parse_chapter_list(self._browser)
 
     def __del__(self):
-        self._browser.close()
+        pass
 
     def title(self):
         return self._title
@@ -41,8 +41,8 @@ class Parser:
     def author(self):
         return self._author
 
-    def cover(self):
-        return self._cover_url
+    def download_cover(self, filename):
+        pass
 
     def chapters(self):
         return self._chapterlist
@@ -50,6 +50,7 @@ class Parser:
     @staticmethod
     def load(browser, url):
         browser.get(url)
+        Parser._wait_for(browser, (By.XPATH, '//*[@id="arrticle"]'))
         return browser.page_source.encode('utf-8', errors='ignore')
 
     @staticmethod
@@ -73,6 +74,12 @@ class Parser:
             for p in story.find_all('p'):
                 #paragraphs.append(p.text.strip())
                 paragraphs.append(p)
+            if len(paragraphs) == 0:
+                for child in story.children:
+                    if isinstance(child, NavigableString):
+                        p = soup.new_tag('p')
+                        p.append(child)
+                        paragraphs.append(p)
 
         # Build chapter HTML
         chapter = BeautifulSoup('<html><head></head><body></body></html>', 'lxml')
@@ -98,7 +105,7 @@ class Parser:
 
     @staticmethod
     def _wait_for(app, tup):
-        return WebDriverWait(app, 10).until(EC.presence_of_element_located(tup))
+        return WebDriverWait(app, 30).until(EC.presence_of_element_located(tup))
 
     def _parse_title(self, app):
         title = Parser._wait_for(app, (By.XPATH, '/html/body/div[1]/div/div/div[2]/div/article/div[2]/div[1]/div/div[1]/h1/span[1]'))
@@ -127,7 +134,8 @@ class Parser:
                     data = json.loads(script.text.strip().strip('window.__DATA__ = '))
                     break
             if data == None:
-                raise Exception('no chapter data found')
+                time.sleep(1)
+                continue
             for chapter in data['chapters']:
                 chapterlist.append(chapter['link'])
             page = page + 1
@@ -142,5 +150,5 @@ class Parser:
             raise Exception('no chapters found')
 
 if __name__ == '__main__':
-    with open('staging/995868.html', 'rb') as f:
+    with open('staging/1974183.html', 'rb') as f:
         print(Parser.parse_chapter(f.read()))

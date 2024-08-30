@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import importlib, subprocess, sys, urllib.parse
+import importlib, os, sys, urllib.parse
 
 PARSERS = {
     'www.myboxnovel.com' : 'myboxnovel_com',
@@ -25,38 +25,56 @@ def build_parser(parser_name, url):
     parser_mod = importlib.import_module('parsers.{}'.format(parser_name), 'parsers')
     return parser_mod.Parser(url)
 
+def load_bookinfo():
+	with open('bookinfo.txt', 'r') as ifile:
+		return ifile.readline().strip(), ifile.readline().strip(), ifile.readline().strip()
+
 def main(args):
-    if len(args) != 1:
+    # Variables
+    title = str()
+    author = str()
+    url = str()
+    chapters = list()
+    write_bookinfo = False
+
+    # Check arguments
+    if len(args) == 0 and os.path.exists('bookinfo.txt'):
+        title, author, url = load_bookinfo()
+    elif len(args) == 1:
+        url = args[0]
+        write_bookinfo = True
+
+    if len(url) == 0:
         print('Usage:', sys.argv[0], '<URL>')
         return 1
 
     # Load the parser
-    url_info = urllib.parse.urlparse(args[0])
+    url_info = urllib.parse.urlparse(url)
     domain = url_info.netloc
     if ':' in domain:
         domain = domain.split(':')[0]
-
-    # Check for a known parser
     if domain not in PARSERS:
         print('ERROR :: no parser for', domain, file=sys.stderr)
         return 1
+    parser = build_parser(PARSERS[domain], url)
 
-    # Load the parser
-    parser = build_parser(PARSERS[domain], args[0])
+    # Save title and author, if not saved.
+    if write_bookinfo:
+        title = parser.title()
+        author = parser.author()
 
-    print('Title:', parser.title())
-    print('Author:', parser.author())
-    print('Cover:', parser.cover())
+    print('Title:', title)
+    print('Author:', author)
     print('Chapters:', len(parser.chapters()))
 
-    with open('bookinfo.txt', 'wb') as ofile:
-        ofile.write(parser.title())
-        ofile.write(b'\n')
-        ofile.write(parser.author())
-        ofile.write(b'\n')
-    cover_url = parser.cover()
-    if cover_url:
-        subprocess.run(['powershell', '-Command', 'curl', '-OutFile', 'cover.jpg', cover_url])
+    if write_bookinfo:
+        with open('bookinfo.txt', 'wb') as ofile:
+            ofile.write(parser.title())
+            ofile.write(b'\n')
+            ofile.write(parser.author())
+            ofile.write(b'\n')
+            ofile.write(url.encode('utf-8'))
+            ofile.write(b'\n')
     with open('urlcache.txt', 'w') as ofile:
         for url in parser.chapters():
             ofile.write('{}\n'.format(url))

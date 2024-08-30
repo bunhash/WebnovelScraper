@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from ebooklib import epub
-import os, sys, uuid
+import os, subprocess, sys, uuid
 
 def main(args):
 	if not os.path.exists('bookinfo.txt'):
@@ -104,6 +104,7 @@ def buildEpub(title, author, chapterInfo, cover_img=None, gen_toc=True):
 
     # create epub file
     epub.write_epub('{}.epub'.format(title), book, {})
+    subprocess.run(['ebook-convert.exe', '{}.epub'.format(title), '{}.azw3'.format(title), '--no-inline-toc'], shell=True, check=True)
 
 if __name__ == '__main__':
 	main(sys.argv[1:])

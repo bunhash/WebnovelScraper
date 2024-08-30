@@ -47,8 +47,8 @@ class Parser:
     def author(self):
         return self._author
 
-    def cover(self):
-        return self._cover_url
+    def download_cover(self, filename):
+        raise Exception("Failed")
 
     def chapters(self):
         return self._chapterlist

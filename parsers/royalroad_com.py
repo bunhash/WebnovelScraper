@@ -42,8 +42,8 @@ class Parser:
     def author(self):
         return self._author
 
-    def cover(self):
-        return self._cover_url
+    def download_cover(self, filename):
+        raise Exception("Failed")
 
     def chapters(self):
         return self._chapterlist
@@ -75,6 +75,15 @@ class Parser:
         paragraphs = list()
         for p in chapter.find_all('p'):
             paragraphs.append(p)
+        if not paragraphs:
+            for br in chapter.find_all('br'):
+                br.replace_with('\n')
+            for line in chapter.get_text().split('\n'):
+                line = line.strip()
+                if line:
+                    para_tag = soup.new_tag('p')
+                    para_tag.append(NavigableString(line))
+                    paragraphs.append(para_tag)
 
         # Build chapter HTML
         chapter = BeautifulSoup('<html><head></head><body></body></html>', 'lxml')
@@ -129,3 +138,7 @@ class Parser:
                 except:
                     break
         return chapterlist
+
+if __name__ == '__main__':
+    with open('staging/prologue-chapter-1', 'rb') as ifile:
+        print(Parser.parse_chapter(ifile.read()))
