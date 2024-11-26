@@ -35,24 +35,36 @@ def load_parser(url):
 
 class Selenium:
 
-    def __init__(self, urls, username=None, password=None):
-        self._parser = load_parser(urls[0])
+    def __init__(self, urls, username=None, password=None, is_image=False):
+        if is_image:
+            self._parser = None
+        else:
+            self._parser = load_parser(urls[0])
         self._urls = urls
+        self._is_image = is_image
         self._browser = uc.Chrome()
-        if username and password:
+        if username and password and self._parser:
             self._parser.Parser.login(self._browser, username, password)
 
     def __del__(self):
         self._browser.quit()
 
-    def download(self, url):
-        filename = url.rstrip('/').rsplit("/", 1)[1]
+    def download(self, url, filename=None):
+        if filename == None:
+            filename = url.rstrip('/').rsplit("/", 1)[1]
         if not filename:
             raise Exception('no filename found')
         staging_file = os.path.join('staging', filename)
         if not os.path.exists(staging_file):
             with open(staging_file, 'wb') as ofile:
-                ofile.write(self._parser.Parser.load(self._browser, url))
+                if self._is_image:
+                    self._browser.get(url)
+                    time.sleep(5)
+                    self._browser.get(url)
+                    time.sleep(5)
+                    #self._browser.save_screenshot(staging_file)
+                else:
+                    ofile.write(self._parser.Parser.load(self._browser, url))
 
 class PowerShell:
 
@@ -123,9 +135,10 @@ class Native:
 def main(args):
     use_selenium = False
     use_powershell = False
+    is_image = False
     username = None
     password = None
-    opts, args = getopt.getopt(args, "hSPu:p:")
+    opts, args = getopt.getopt(args, "hSPIu:p:")
     for o, a in opts:
         if o == "-h":
             print('Usage: {} [-S]'.format(sys.argv[0]))
@@ -133,6 +146,7 @@ def main(args):
             print('  -h            print this message')
             print('  -S            use Selenium')
             print('  -P            use PowerShell')
+            print('  -I            image')
             print('  -u username   username')
             print('  -p password   password')
             return 0
@@ -142,6 +156,8 @@ def main(args):
         elif o == "-P":
             use_selenium = False
             use_powershell = True
+        elif o == "-I":
+            is_image = True
         elif o == "-u":
             username = a
         elif o == "-p":
@@ -150,12 +166,18 @@ def main(args):
             assert False, "unhandled option"
 
     urls = list()
+    filenames = list()
     for line in sys.stdin:
-        urls.append(line.strip())
+        if is_image:
+            url, filename = line.strip().split(' ', 1)
+            filenames.append(filename)
+        else:
+            url = line.strip()
+        urls.append(url)
 
     downloader = None
     if use_selenium:
-        downloader = Selenium(urls, username, password)
+        downloader = Selenium(urls, username, password, is_image=is_image)
     elif use_powershell:
         downloader = PowerShell(urls)
     else:
@@ -167,7 +189,10 @@ def main(args):
     total = len(urls)
     for i in range(total):
         print('({:4d}/{:4d}) Downloading'.format(i + 1, total), urls[i])
-        downloader.download(urls[i])
+        if len(filenames) == len(urls):
+            downloader.download(urls[i], filename=filenames[i])
+        else:
+            downloader.download(urls[i])
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))

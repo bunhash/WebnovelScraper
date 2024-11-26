@@ -6,7 +6,7 @@
 # @email bunhash@bhmail.me
 #
 
-import time
+import requests, time
 from bs4 import BeautifulSoup, NavigableString
 import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
@@ -85,6 +85,17 @@ class Parser:
                     para_tag.append(NavigableString(line))
                     paragraphs.append(para_tag)
 
+        # Save image URL
+        images = list()
+        for img in chapter.find_all('img'):
+            url = img.get('src', None)
+            if url == None:
+                images.append(None)
+                continue
+            if url.startswith('/'):
+                url = 'https://royalroad.com' + url
+            images.append(url)
+
         # Build chapter HTML
         chapter = BeautifulSoup('<html><head></head><body></body></html>', 'lxml')
 
@@ -98,7 +109,7 @@ class Parser:
             chapter.body.append(p)
         
         # Return chapter title and chapter html
-        return title.encode('utf-8', errors='ignore'), chapter.encode('utf-8', errors='ignore')
+        return title.encode('utf-8', errors='ignore'), chapter.encode('utf-8', errors='ignore'), images
     
     ##########################################################################
     # PRIVATE

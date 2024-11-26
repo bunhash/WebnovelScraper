@@ -82,7 +82,7 @@ class Parser:
             chapter.body.append(p)
         
         # Return chapter title and chapter html
-        return title.encode('utf-8', errors='ignore'), chapter.encode('utf-8', errors='ignore')
+        return title.encode('utf-8', errors='ignore'), chapter.encode('utf-8', errors='ignore'), []
     
     ##########################################################################
     # PRIVATE

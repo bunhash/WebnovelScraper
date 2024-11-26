@@ -6,9 +6,12 @@
 # @email bunhash@bhmail.me
 #
 
-import json, time
+import json, random, time
 from bs4 import BeautifulSoup, NavigableString
 import undetected_chromedriver as uc
+from selenium_stealth import stealth
+#from selenium.webdriver import Chrome
+from selenium.webdriver import ChromeOptions as Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
@@ -21,7 +24,23 @@ class Parser:
     ##########################################################################
 
     def __init__(self, url):
-        self._browser = uc.Chrome()
+        options = Options()
+        options.add_argument('--disable-blink-features=AutomationControlled')
+        options.add_argument('--disable-popup-blocking')
+        options.add_argument('--start-maximized')
+        options.add_argument('--disable-extensions')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        self._browser = uc.Chrome(options=options)
+        stealth(
+            self._browser,
+             languages=["en-US", "en"],
+            vendor="Google Inc.",
+            platform="Win32",
+            webgl_vendor="Intel Inc.",
+            renderer="Intel Iris OpenGL Engine",
+            fix_hairline=True,
+        )
         self._browser.get(url)
 
         self._title = self._parse_title(self._browser)
@@ -31,6 +50,7 @@ class Parser:
         self._cover_url = self._parse_cover_url(self._browser)
         time.sleep(1)
         self._chapterlist = self._parse_chapter_list(self._browser)
+
 
     def __del__(self):
         pass
@@ -97,15 +117,15 @@ class Parser:
             chapter.body.append(p)
         
         # Return chapter title and chapter html
-        return title.encode('utf-8', errors='ignore'), chapter.encode('utf-8', errors='ignore')
+        return title.encode('utf-8', errors='ignore'), chapter.encode('utf-8', errors='ignore'), []
     
     ##########################################################################
     # PRIVATE
     ##########################################################################
 
     @staticmethod
-    def _wait_for(app, tup):
-        return WebDriverWait(app, 30).until(EC.presence_of_element_located(tup))
+    def _wait_for(app, tup, time=30):
+        return WebDriverWait(app, time).until(EC.presence_of_element_located(tup))
 
     def _parse_title(self, app):
         title = Parser._wait_for(app, (By.XPATH, '/html/body/div[1]/div/div/div[2]/div/article/div[2]/div[1]/div/div[1]/h1/span[1]'))
@@ -126,7 +146,12 @@ class Parser:
         page_url = toc_url
         page = 1
         while True:
+            time.sleep(2)
             self._browser.get(page_url)
+            try:
+                _ = Parser._wait_for(app, (By.XPATH, '/html/body/div/div/div/div[2]/div[2]/div[1]/div/main/div'), time=5)
+            except:
+                continue
             toc_soup = BeautifulSoup(self._browser.page_source, 'lxml')
             data = None
             for script in toc_soup.find_all('script'):

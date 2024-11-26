@@ -33,7 +33,6 @@ def load_parser(url):
     return LOADED[domain]
 
 def main(args):
-
     if not os.path.exists('book'):
         os.mkdir('book')
 
@@ -60,32 +59,52 @@ def main(args):
         pool.close()
 
         # Complete the parsing jobs
+        images = list()
         with open('chapterlist.txt', 'w') as ofile:
             total = len(jobs)
             for i in range(total):
                 raw, res = jobs[i]
                 print('({:4d}/{:4d}) Parsing'.format(i + 1, total), raw)
                 try:
-                    ofname, ctitle = res.get(timeout=None)
+                    ofname, ctitle, imgtups = res.get(timeout=None)
                     ofile.write('{} {}\n'.format(ofname, ctitle))
+                    for imgtup in imgtups:
+                        images.append(imgtup)
                 except KeyboardInterrupt as e:
                     raise e
                 except Exception as e:
                     print(e)
 
+        # Write image URLs if any
+        if len(images) > 0:
+            with open('images.txt', 'w') as ofile:
+                for imgurl, imgname in images:
+                    ofile.write('{} {}\n'.format(imgurl, imgname))
+
     except KeyboardInterrupt:
         pool.terminate()
         pool.join()
 
-def parse(url, ifname, ofname):
+def parse(url, ifname, ofname, prefix=None):
+    if prefix == None:
+        prefix = os.path.basename(ofname)
     try:
         parser = load_parser(url)
         with open(ifname, 'rb') as ifile:
-            ctitle, chapter = parser.Parser.parse_chapter(ifile.read())
+            ctitle, chapter, images = parser.Parser.parse_chapter(ifile.read())
             ctitle = ctitle.decode('ascii', errors='ignore')
+            imgtups = list()
+            for i in range(len(images)):
+                if images[i] != None:
+                    index = images[i].rfind('.')
+                    if index >= 0:
+                        ext = images[i][index:]
+                        imgname = '{}-{}{}'.format(prefix, str(i), ext)
+                        imgtups.append((images[i], imgname))
+                        chapter = chapter.replace(images[i].encode('utf-8'), imgname.encode('utf-8'))
             with open(ofname, 'wb') as ofile:
                 ofile.write(chapter)
-            return ofname, ctitle
+            return ofname, ctitle, imgtups
     except KeyboardInterrupt as e:
         raise e
     except Exception as e:
